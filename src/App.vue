@@ -37,8 +37,17 @@ const bannerSlides = [
   },
 ]
 const currentIndex = ref(0)
-const currentImage = computed(() => bannerSlides[currentIndex.value].image)
-const currentSlide = computed(() => bannerSlides[currentIndex.value])
+const emptySlide = {
+  image: '',
+  eyebrow: '',
+  titleTop: '',
+  titleAccent: '',
+  subtitle: '',
+  ctaPrimary: '',
+  ctaSecondary: '',
+}
+const currentImage = computed(() => bannerSlides[currentIndex.value]?.image ?? emptySlide.image)
+const currentSlide = computed(() => bannerSlides[currentIndex.value] ?? emptySlide)
 let intervalId: number | undefined
 const paused = ref(false)
 
