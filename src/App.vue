@@ -1,7 +1,8 @@
 <script setup lang="ts">
-import { ref, computed, onMounted, onUnmounted } from 'vue'
+import { ref, computed, onMounted, onUnmounted, reactive } from 'vue'
 import ProjectCard from './components/ProjectCard.vue'
 import LoginForm from './components/LoginForm.vue'
+import Toast from './components/Toast.vue'
 import localBanner1 from '../images/banner1.jpeg'
 import localBanner2 from "../images/banner2.png";
 import localBanner3 from "../images/banner3.png";
@@ -119,14 +120,60 @@ const projects = [
   },
 ]
 
-// UI state for auth modal (design-only)
+// UI state for auth modal and auth actions
 const showLogin = ref(false)
+const authSubmitting = ref(false)
 
-function handleLogin(payload: { username: string; password: string }) {
-  // design-only: just log the values and close modal
-  // eslint-disable-next-line no-console
-  console.log('Design: login submitted', payload)
-  showLogin.value = false
+const toast = reactive({ show: false, title: '', message: '', type: 'success' as 'success' | 'error' })
+
+async function handleLogin(payload: { username: string; password: string }) {
+  if (authSubmitting.value) return
+  authSubmitting.value = true
+  try {
+    // map username -> email for backend
+    const body = { email: payload.username.trim(), password: payload.password }
+    // eslint-disable-next-line no-console
+    console.log('Logging in:', body)
+    const res = await fetch('https://pitching-backend.onrender.com/login', {
+      method: 'POST',
+      headers: { accept: 'application/json', 'Content-Type': 'application/json' },
+      body: JSON.stringify(body)
+    })
+
+    if (res.ok) {
+      const data = await res.json()
+      // eslint-disable-next-line no-console
+      console.log('Login success:', data)
+      // persist basic user info
+      try { localStorage.setItem('user', JSON.stringify(data)) } catch (e) { /* ignore */ }
+
+      toast.show = true
+      toast.title = 'Signed in'
+      toast.message = 'Welcome back'
+      toast.type = 'success'
+
+      // close modal and redirect to dashboard after a short delay
+      showLogin.value = false
+      setTimeout(() => (window.location.href = '/dashboard'), 1200)
+    } else {
+      const err = await res.json().catch(() => ({ message: 'Login failed' }))
+      // eslint-disable-next-line no-console
+      console.warn('Login failed:', res.status, err)
+      toast.show = true
+      toast.title = res.status === 401 ? 'Invalid credentials' : 'Login error'
+      toast.message = err.detail || err.message || 'Please check your credentials.'
+      toast.type = 'error'
+      authSubmitting.value = false
+    }
+  } catch (err) {
+    // eslint-disable-next-line no-console
+    console.error('Login network error:', err)
+    toast.show = true
+    toast.title = 'Network error'
+    toast.message = 'Please check your connection and try again.'
+    toast.type = 'error'
+    authSubmitting.value = false
+  }
 }
 </script>
 
@@ -193,7 +240,7 @@ function handleLogin(payload: { username: string; password: string }) {
           v-for="project in projects"
           :key="project.name"
           v-bind="project"
-          imageHeight="h-26"
+          imageHeight="h-40 md:h-44 lg:h-48"
         />
       </div>
     </main>
@@ -230,7 +277,8 @@ function handleLogin(payload: { username: string; password: string }) {
     </footer>
 
     <!-- Auth modals (design-only) -->
-    <LoginForm v-if="showLogin" @close="showLogin = false" @submit="handleLogin" />
+    <LoginForm v-if="showLogin" @close="showLogin = false" @submit="handleLogin" :submitting="authSubmitting" />
+    <Toast :show="toast.show" :title="toast.title" :message="toast.message" :type="toast.type" :duration="3000" @close="toast.show = false" />
 
   </div>
 </template>

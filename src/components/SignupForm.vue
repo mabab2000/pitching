@@ -73,18 +73,28 @@
 
         <div v-if="role === 'team_member'">
           <label class="block text-sm font-semibold text-gray-700 mb-2">Select Team Leader</label>
-          <select v-model.number="leaderId" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500">
-            <option value="0" disabled>Select a team leader</option>
+          <select v-model="leaderId" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500" :disabled="props.loadingLeaders">
+            <option value="" disabled>{{ props.loadingLeaders ? 'Loading leaders...' : 'Select a team leader' }}</option>
             <option v-for="l in props.leaders || []" :key="l.id" :value="l.id">{{ l.name }}</option>
           </select>
-          <p v-if="props.leaders?.length === 0" class="text-sm text-gray-500 mt-2">No team leaders available yet.</p>
+          <p v-if="!props.loadingLeaders && props.leaders?.length === 0" class="text-sm text-red-600 bg-red-50 px-3 py-2 rounded-lg mt-2">No team leaders available. Please contact administrator.</p>
+          <p v-else-if="props.loadingLeaders" class="text-sm text-indigo-600 mt-2 flex items-center gap-2">
+            <svg class="animate-spin h-4 w-4" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
+            Loading team leaders...
+          </p>
         </div>
 
         <p v-if="error" class="text-sm text-red-600 bg-red-50 px-4 py-2 rounded-lg">{{ error }}</p>
 
         <div class="flex gap-3 mt-6">
-          <button type="button" @click="$emit('close')" class="flex-1 px-4 py-3 rounded-lg bg-gray-100 hover:bg-gray-200 text-gray-700 font-medium transition-colors">Cancel</button>
-          <button type="submit" :disabled="!canSubmit" class="flex-1 px-4 py-3 rounded-lg bg-indigo-600 hover:bg-indigo-700 text-white font-medium disabled:opacity-50 disabled:cursor-not-allowed transition-all shadow-lg hover:shadow-xl">Sign Up</button>
+          <button type="button" @click="$emit('close')" :disabled="props.submitting" class="flex-1 px-4 py-3 rounded-lg bg-gray-100 hover:bg-gray-200 text-gray-700 font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed">Cancel</button>
+          <button type="submit" :disabled="!canSubmit || props.submitting" class="flex-1 px-4 py-3 rounded-lg bg-indigo-600 hover:bg-indigo-700 text-white font-medium disabled:opacity-50 disabled:cursor-not-allowed transition-all shadow-lg hover:shadow-xl flex items-center justify-center gap-2">
+            <svg v-if="props.submitting" class="animate-spin h-5 w-5" fill="none" viewBox="0 0 24 24">
+              <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+              <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+            </svg>
+            <span>{{ props.submitting ? 'Creating Account...' : 'Sign Up' }}</span>
+          </button>
         </div>
       </form>
       
@@ -98,7 +108,7 @@
 <script setup lang="ts">
 import { ref, computed } from 'vue'
 
-const props = defineProps<{ leaders?: { id: number; name: string }[] }>()
+const props = defineProps<{ leaders?: { id: string | number; name: string }[]; loadingLeaders?: boolean; submitting?: boolean }>()
 const emit = defineEmits(['close', 'submit'])
 
 const fullName = ref('')
@@ -108,7 +118,7 @@ const confirmPassword = ref('')
 const error = ref('')
 
 const role = ref<'individual' | 'team_leader' | 'team_member'>('individual')
-const leaderId = ref<number>(0)
+const leaderId = ref<string>('')
 
 const emailValid = computed(() => /\S+@\S+\.\S+/.test(email.value))
 const passwordsMatch = computed(() => password.value === confirmPassword.value && password.value.length > 0)
@@ -116,7 +126,7 @@ const canSubmit = computed(() => {
   if (fullName.value.trim() === '') return false
   if (!emailValid.value) return false
   if (!passwordsMatch.value) return false
-  if (role.value === 'team_member' && (!leaderId.value || leaderId.value === 0)) return false
+  if (role.value === 'team_member' && (!leaderId.value || leaderId.value === '')) return false
   return true
 })
 
@@ -130,7 +140,7 @@ function onSubmit() {
     error.value = 'Passwords do not match.'
     return
   }
-  if (role.value === 'team_member' && (!leaderId.value || leaderId.value === 0)) {
+  if (role.value === 'team_member' && (!leaderId.value || leaderId.value === '')) {
     error.value = 'Please select a team leader.'
     return
   }

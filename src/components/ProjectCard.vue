@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { ref } from 'vue'
-defineProps<{
+const props = defineProps<{
   image: string
   name: string
   description: string
@@ -19,6 +19,7 @@ defineProps<{
       contact?: string
     }>
   }
+  imageHeight?: string
 }>()
 
 const showMembers = ref(false)
@@ -36,6 +37,8 @@ function closeImage() {
   showImagePreview.value = false
   imagePreviewSrc.value = null
 }
+
+const imageHeightClass = (props.imageHeight && props.imageHeight.length) ? props.imageHeight : 'h-48 md:h-56 lg:h-64'
 </script>
 
 <template>
@@ -44,7 +47,7 @@ function closeImage() {
     style="font-family: 'Inter', system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, 'Noto Sans';"
   >
     <!-- Project image -->
-    <div class="relative h-64 md:h-72 lg:h-80 overflow-hidden">
+    <div :class="['relative overflow-hidden', imageHeightClass]">
       <img
         @click="openImage(image)"
         role="button"

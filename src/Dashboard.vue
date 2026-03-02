@@ -43,21 +43,37 @@
         </div>
       </header>
       <Overview v-if="active === 'overview'" :stats="stats" :projects="projects" :team="teamMembers" :upcoming="upcoming" :winners="winners" />
-      <ProjectsList v-if="active === 'project'" :projects="projects" />
+      <ProjectsList v-if="active === 'project'" :projects="projects" @delete="deleteProject" />
       <TeamList v-if="active === 'team'" :team="teamMembers" />
+
+      <ProjectFormModal v-if="showProjectModal" @close="showProjectModal = false" @submit="addProject" />
+      <Toast :show="toast.show" :title="toast.title" :message="toast.message" :type="toast.type" :duration="3000" @close="toast.show = false" />
     </main>
   </div>
 </template>
 
 <script setup lang="ts">
-import { onMounted, onUnmounted, ref } from 'vue'
+import { onMounted, onUnmounted, ref, reactive } from 'vue'
 import Overview from './components/Overview.vue'
 import ProjectsList from './components/ProjectsList.vue'
 import TeamList from './components/TeamList.vue'
+import ProjectFormModal from './components/ProjectFormModal.vue'
+import Toast from './components/Toast.vue'
 
 type DashboardSection = 'overview' | 'project' | 'team'
 
 const subtitle = 'Project pitching event - manage projects, schedule and teams.'
+
+// current logged-in user from localStorage
+const currentUser = ref<any>(null)
+let authToken: string | null = null
+try {
+  const raw = localStorage.getItem('user')
+  if (raw) currentUser.value = JSON.parse(raw)
+  authToken = localStorage.getItem('token')
+} catch (e) {
+  /* ignore */
+}
 
 function sectionFromPath(pathname: string): DashboardSection {
   if (pathname === '/dashboard/project') return 'project'
@@ -85,26 +101,76 @@ function logout() {
   window.location.href = '/'
 }
 
+const showProjectModal = ref(false)
+
 function createProject() {
-  // design-only: add a sample project to the list
-  const id = Date.now()
-  projects.value.unshift({
-    id,
-    title: 'New Project ' + id,
-    description: 'Quick pitch placeholder.',
-    team: 'TBD',
-    stage: 'Idea',
-    requested: 5000,
-    votes: 0,
-  })
+  // open modal to create a project
+  showProjectModal.value = true
+}
+
+const toast = reactive({ show: false, title: '', message: '', type: 'success' as 'success' | 'error' })
+
+function addProject(payload: any) {
+  // payload is the server response; map to UI shape if needed
+  const p = {
+    id: payload.id,
+    title: payload.project_name || payload.title || '',
+    description: payload.description || '',
+    team: '',
+    stage: '',
+    requested: 0,
+    votes: payload.votes || 0,
+    image: payload.project_image_url || payload.image || payload.project_image || '',
+    leaderImage: payload.leader_image_url || payload.leader_image || '',
+  }
+  projects.value.unshift(p)
+  toast.show = true
+  toast.title = 'Project created'
+  toast.message = payload.title + ' has been added.'
+  toast.type = 'success'
+  // ensure we are on the projects section
   navigate('project')
+}
+
+async function deleteProject(id: string | number) {
+  if (!id) return
+  if (!confirm('Delete this project? This action cannot be undone.')) return
+  try {
+    const headers: any = { accept: 'application/json' }
+    if (authToken) headers.Authorization = `Bearer ${authToken}`
+    const res = await fetch(`https://pitching-backend.onrender.com/projects/${id}`, { method: 'DELETE', headers })
+    if (res.ok) {
+      // remove from list
+      projects.value = projects.value.filter(p => String(p.id) !== String(id))
+      toast.show = true
+      toast.title = 'Deleted'
+      toast.message = 'Project removed successfully.'
+      toast.type = 'success'
+    } else {
+      const err = await res.json().catch(() => ({ message: 'Delete failed' }))
+      toast.show = true
+      toast.title = 'Delete failed'
+      toast.message = err.detail || err.message || 'Could not delete project.'
+      toast.type = 'error'
+    }
+  } catch (err) {
+    console.error('Delete error', err)
+    toast.show = true
+    toast.title = 'Network error'
+    toast.message = 'Failed to delete project.'
+    toast.type = 'error'
+  }
 }
 
 function handlePopState() {
   active.value = sectionFromPath(window.location.pathname)
 }
 
-onMounted(() => window.addEventListener('popstate', handlePopState))
+onMounted(() => {
+  window.addEventListener('popstate', handlePopState)
+  // load projects for leader if logged in
+  loadLeaderProjects()
+})
 onUnmounted(() => window.removeEventListener('popstate', handlePopState))
 
 // sample data for pitching event
@@ -113,6 +179,35 @@ const stats = { events: 3, registrations: 186 }
 const projects = ref<Array<any>>([
   { id: 1, title: 'GreenGrid', description: 'Microgrid management for rural communities.', team: 'Green Team', stage: 'Prototype', requested: 25000, votes: 124, image: 'https://images.unsplash.com/photo-1509395176047-4a66953fd231?w=400&q=80' },
 ])
+
+async function loadLeaderProjects() {
+  if (!currentUser.value || !currentUser.value.id) return
+  const id = currentUser.value.id
+  try {
+    const headers: any = { accept: 'application/json' }
+    if (authToken) headers.Authorization = `Bearer ${authToken}`
+    const res = await fetch(`https://pitching-backend.onrender.com/projects/leader/${id}`, { headers })
+    if (res.ok) {
+      const data = await res.json()
+      // map API projects to UI shape
+      projects.value = (data || []).map((p: any) => ({
+        id: p.id,
+        title: p.project_name || p.title || '',
+        description: p.description || '',
+        team: '',
+        stage: '',
+        requested: 0,
+        votes: p.votes || 0,
+        image: p.project_image_url || p.image || '',
+        leaderImage: p.leader_image_url || '',
+      }))
+    } else {
+      console.warn('Failed to load leader projects', res.status)
+    }
+  } catch (err) {
+    console.error('Error loading leader projects', err)
+  }
+}
 
 const upcoming = ref([
   { id: 's1', project: 'GreenGrid', time: 'Mar 5, 10:00 AM', panel: 'Energy', room: 'A' },
