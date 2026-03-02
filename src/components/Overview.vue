@@ -55,29 +55,7 @@ const props = defineProps<{
   winners: any[]
 }>()
 
-function projectVotesFor(name: string) {
-  const p = props.projects?.find((x: any) => (x.title || x.project || '').toLowerCase() === (name || '').toLowerCase())
-  return (p && (p.votes || 0)) || 0
-}
 
-const topUpcoming = computed(() => {
-  if (!props.upcoming || props.upcoming.length === 0) return []
-  // copy
-  const arr = props.upcoming.slice()
-  // sort by explicit priority (desc), then by project votes (desc), then keep original order
-  arr.sort((a: any, b: any) => {
-    const pa = (a.priority ?? null)
-    const pb = (b.priority ?? null)
-    if (pa !== null && pb !== null) return pb - pa
-    if (pa !== null && pb === null) return -1
-    if (pa === null && pb !== null) return 1
-    const va = projectVotesFor(a.project)
-    const vb = projectVotesFor(b.project)
-    if (vb !== va) return vb - va
-    return 0
-  })
-  return arr.slice(0, 6)
-})
 
 const totalProjects = computed(() => (props.projects || []).length)
 
@@ -103,21 +81,7 @@ const topProjects = computed(() => {
   return list.slice(0, 4)
 })
 
-function leadersForProject(name: string) {
-  if (!props.team) return []
-  const lower = name.toLowerCase()
-  return props.team.filter((m: any) => {
-    const role = (m.role || '').toLowerCase()
-    const team = (m.team || '').toLowerCase()
-    const nameMatch = (m.name || '').toLowerCase().includes(lower)
-    return role.includes(lower) || team.includes(lower) || nameMatch
-  })
-}
 
-function projectForName(name: string) {
-  if (!props.projects) return null
-  return props.projects.find((p: any) => (p.title || p.project || '').toLowerCase() === name.toLowerCase()) || null
-}
 </script>
 
 <style scoped>
