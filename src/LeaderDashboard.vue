@@ -15,7 +15,7 @@
             :alt="currentUser.full_name"
             class="w-12 h-12 rounded-full object-cover"
           />
-          <div v-else class="w-12 h-12 rounded-full bg-indigo-500 flex items-center justify-center">
+          <div v-else classp="w-12 h-12 rounded-full bg-indigo-500 flex items-center justify-center">
             <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path></svg>
           </div>
           <div class="flex-1 min-w-0">
@@ -131,6 +131,7 @@ function addProject(payload: any) {
     votes: payload.votes || 0,
     image: payload.project_image_url || payload.image || payload.project_image || '',
     leaderImage: payload.leader_image_url || payload.leader_image || '',
+    projectLink: payload.project_link || '',
   }
   projects.value.unshift(p)
   toast.show = true

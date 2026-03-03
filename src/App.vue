@@ -61,7 +61,7 @@ async function fetchProjects() {
         image: project.project_profile_image || 'https://images.unsplash.com/photo-1555066931-4365d14bab8c?w=600&q=80',
         name: project.project_name || 'Untitled Project',
         description: project.description || 'No description available.',
-        link: '#',
+        link: project.project_link || '',
         tags: [],
         ownerName: project.project_leader?.full_name || 'Unknown',
         ownerImage: project.project_leader?.profile_image || '',
@@ -133,6 +133,9 @@ async function handleLogin(payload: { username: string; password: string }) {
       } else if (role === 'leader') {
         toast.title = 'Leader Access Granted'
         toast.message = 'Welcome to your project dashboard'
+      } else if (role === 'individual') {
+        toast.title = 'Individual Access Granted'
+        toast.message = 'Welcome to your personal project dashboard'
       } else {
         toast.title = 'Signed in'
         toast.message = 'Welcome to your dashboard'

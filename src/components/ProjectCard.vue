@@ -39,6 +39,7 @@ function closeImage() {
 }
 
 const imageHeightClass = (props.imageHeight && props.imageHeight.length) ? props.imageHeight : 'h-48 md:h-56 lg:h-64'
+const hasProjectLink = !!(props.link && props.link.trim().length)
 </script>
 
 <template>
@@ -99,6 +100,7 @@ const imageHeightClass = (props.imageHeight && props.imageHeight.length) ? props
       <!-- Link + Team button -->
       <div class="mt-3 flex items-center justify-between gap-4">
         <a
+          v-if="hasProjectLink"
           :href="link"
           target="_blank"
           rel="noopener noreferrer"
@@ -114,6 +116,7 @@ const imageHeightClass = (props.imageHeight && props.imageHeight.length) ? props
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 8l4 4m0 0l-4 4m4-4H3" />
           </svg>
         </a>
+        <span v-else class="inline-flex items-center text-sm font-medium text-gray-400">No project link</span>
 
         <button
           v-if="group && group.name"

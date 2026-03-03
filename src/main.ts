@@ -17,6 +17,8 @@ function getDashboardForUser() {
 				return import('./AdminDashboard.vue')
 			} else if (role === 'leader') {
 				return import('./LeaderDashboard.vue')
+			} else if (role === 'individual') {
+				return import('./IndividualDashboard.vue')
 			} else {
 				// Default to member dashboard
 				return import('./MemberDashboard.vue')

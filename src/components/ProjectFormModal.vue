@@ -19,6 +19,17 @@
           <textarea v-model="description" rows="4" class="w-full px-4 py-2 border rounded-lg" placeholder="Short description" required></textarea>
         </div>
 
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-1">Project Link</label>
+          <input
+            v-model="projectLink"
+            type="url"
+            class="w-full px-4 py-2 border rounded-lg"
+            placeholder="https://example.com/project-doc"
+            required
+          />
+        </div>
+
         <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div>
             <label class="block text-sm font-medium text-gray-700 mb-1">Team Leader Profile Image</label>
@@ -81,6 +92,7 @@ try {
 
 const title = ref('')
 const description = ref('')
+const projectLink = ref('')
 const leaderImageFile = ref<File | null>(null)
 const projectImageFile = ref<File | null>(null)
 const leaderImageData = ref<string | null>(null)
@@ -120,6 +132,7 @@ const isValid = computed(() => {
   return (
     title.value.trim().length > 0 &&
     description.value.trim().length > 0 &&
+    projectLink.value.trim().length > 0 &&
     !!leaderImageData.value &&
     !!projectImageData.value
   )
@@ -143,6 +156,7 @@ async function submit() {
     form.append('leader_id', String(userId))
     form.append('project_name', title.value.trim())
     form.append('description', description.value.trim())
+    form.append('project_link', projectLink.value.trim())
     form.append('project_image', projectImageFile.value)
     form.append('leader_image', leaderImageFile.value)
 
