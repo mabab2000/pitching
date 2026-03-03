@@ -113,17 +113,37 @@ async function handleLogin(payload: { username: string; password: string }) {
       const data = await res.json()
       // eslint-disable-next-line no-console
       console.log('Login success:', data)
-      // persist basic user info
-      try { localStorage.setItem('user', JSON.stringify(data)) } catch (e) { /* ignore */ }
+      
+      // persist basic user info and token
+      try { 
+        localStorage.setItem('user', JSON.stringify(data))
+        if (data.access_token) {
+          localStorage.setItem('token', data.access_token)
+        }
+      } catch (e) { /* ignore */ }
+
+      // Determine role and redirect accordingly
+      const role = (data.role || 'member').toLowerCase()
+      let redirectPath = '/dashboard'
+      
+      // Role-based dashboard routing
+      if (role === 'admin') {
+        toast.title = 'Admin Access Granted'
+        toast.message = 'Welcome to admin dashboard'
+      } else if (role === 'leader') {
+        toast.title = 'Leader Access Granted'
+        toast.message = 'Welcome to your project dashboard'
+      } else {
+        toast.title = 'Signed in'
+        toast.message = 'Welcome to your dashboard'
+      }
 
       toast.show = true
-      toast.title = 'Signed in'
-      toast.message = 'Welcome back'
       toast.type = 'success'
 
       // close modal and redirect to dashboard after a short delay
       showLogin.value = false
-      setTimeout(() => (window.location.href = '/dashboard'), 1200)
+      setTimeout(() => (window.location.href = redirectPath), 1200)
     } else {
       const err = await res.json().catch(() => ({ message: 'Login failed' }))
       // eslint-disable-next-line no-console

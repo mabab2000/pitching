@@ -4,6 +4,31 @@ import App from './App.vue'
 
 // Simple pathname-based mount: support /signup and /dashboard pages without vue-router
 const path = window.location.pathname
+
+// Determine which dashboard to load based on user role
+function getDashboardForUser() {
+	try {
+		const userStr = localStorage.getItem('user')
+		if (userStr) {
+			const user = JSON.parse(userStr)
+			const role = (user.role || '').toLowerCase()
+			
+			if (role === 'admin') {
+				return import('./AdminDashboard.vue')
+			} else if (role === 'leader') {
+				return import('./LeaderDashboard.vue')
+			} else {
+				// Default to member dashboard
+				return import('./MemberDashboard.vue')
+			}
+		}
+	} catch (e) {
+		console.error('Error parsing user data:', e)
+	}
+	// Fallback to member dashboard if no user found
+	return import('./MemberDashboard.vue')
+}
+
 if (path === '/signup') {
 	import('./SignupPage.vue').then(({ default: SignupPage }) => {
 		createApp(SignupPage).mount('#app')
@@ -12,11 +37,13 @@ if (path === '/signup') {
 	path === '/dashboard' ||
 	path === '/dashboard/overview' ||
 	path === '/dashboard/project' ||
-	path === '/dashboard/team'
+	path === '/dashboard/team' ||
+	path === '/dashboard/users'
 ) {
-	import('./Dashboard.vue').then(({ default: Dashboard }) => {
-		createApp(Dashboard).mount('#app')
+	getDashboardForUser().then((module) => {
+		createApp(module.default).mount('#app')
 	})
 } else {
 	createApp(App).mount('#app')
 }
+
