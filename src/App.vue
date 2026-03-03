@@ -290,8 +290,8 @@ async function handleLogin(payload: { username: string; password: string }) {
           <div>
             <h4 class="text-white font-semibold text-lg mb-4">Contact & Support</h4>
             <ul class="space-y-2 text-base">
-              <li><a href="mailto:info@techforwardlive.com" class="hover:text-indigo-400 transition-colors">info@techforwardlive.com</a></li>
-              <li><a href="mailto:projects@techforwardlive.com" class="hover:text-indigo-400 transition-colors">projects@techforwardlive.com</a></li>
+              <li><a href="mailto:info@techforwardlive.com" class="hover:text-indigo-400 transition-colors">info@santechinnovate.com</a></li>
+              <li><a href="mailto:projects@techforwardlive.com" class="hover:text-indigo-400 transition-colors">+250780309833 / +22371005873</a></li>
               <li><span class="text-gray-400">March 6, 1:30 AM - 5:30 PM</span></li>
             </ul>
           </div>
