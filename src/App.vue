@@ -33,92 +33,61 @@ function stopInterval() {
   }
 }
 
-onMounted(() => startInterval())
+onMounted(() => {
+  startInterval()
+  fetchProjects()
+})
 onUnmounted(() => stopInterval())
 
-const projects = [
-  {
-    image: 'https://images.unsplash.com/photo-1555066931-4365d14bab8c?w=600&q=80',
-    name: 'DevPortal',
-    description: 'A modern developer portal built with Vue 3 and Vite, providing comprehensive API documentation and interactive playgrounds for seamless developer experience.',
-    link: 'https://github.com',
-    tags: ['Vue 3', 'TypeScript', 'Vite'],
-    ownerName: 'Ava Thompson',
-    ownerImage: 'https://i.pravatar.cc/150?img=12',
-    ownerRole: 'Frontend Engineer',
-    ownerLink: 'https://github.com/ava',
-    group: {
-      name: 'Portal Team',
-      members: [
-        { name: 'Ava Thompson', image: 'https://i.pravatar.cc/150?img=12', role: 'Frontend Engineer', phone: '+1 (555) 123-4567', email: 'ava@example.com' },
-        { name: 'Marcus Reed', image: 'https://i.pravatar.cc/150?img=8', role: 'Backend Engineer', phone: '+1 (555) 234-5678', email: 'marcus@example.com' },
-        { name: 'Priya Singh', image: 'https://i.pravatar.cc/150?img=44', role: 'UX Designer', phone: '+1 (555) 345-6789', email: 'priya@example.com' },
-      ],
-    },
-  },
-  {
-    image: 'https://images.unsplash.com/photo-1551650975-87deedd944c3?w=600&q=80',
-    name: 'ShopFlow',
-    description: 'A full-stack e-commerce platform featuring real-time inventory management, payment processing, and a sleek mobile-responsive storefront.',
-    link: 'https://github.com',
-    tags: ['Node.js', 'React', 'MongoDB'],
-    ownerName: 'Liam Garcia',
-    ownerImage: 'https://i.pravatar.cc/150?img=32',
-    ownerRole: 'Full-stack Developer',
-    ownerLink: 'https://github.com/liam',
-    group: {
-      name: 'Commerce Squad',
-      members: [
-        { name: 'Liam Garcia', image: 'https://i.pravatar.cc/150?img=32', role: 'Full-stack Developer', phone: '+1 (555) 456-7890', email: 'liam@example.com' },
-        { name: 'Chen Wu', image: 'https://i.pravatar.cc/150?img=19', role: 'DevOps', phone: '+1 (555) 567-8901', email: 'chen@example.com' },
-      ],
-    },
-  },
-  {
-    image: 'https://images.unsplash.com/photo-1504868584819-f8e8b4b6d7e3?w=600&q=80',
-    name: 'DataLens',
-    description: 'An analytics dashboard that visualizes complex datasets with interactive charts, allowing teams to make data-driven decisions faster.',
-    link: 'https://github.com',
-    tags: ['Python', 'D3.js', 'FastAPI'],
-    ownerName: 'Noah Patel',
-    ownerImage: 'https://i.pravatar.cc/150?img=18',
-    ownerRole: 'Data Engineer',
-    ownerLink: 'https://github.com/noah',
-  },
-  {
-    image: 'https://images.unsplash.com/photo-1618477388954-7852f32655ec?w=600&q=80',
-    name: 'TaskHive',
-    description: 'A collaborative project management tool with drag-and-drop Kanban boards, time tracking, and real-time team notifications.',
-    link: 'https://github.com',
-    tags: ['Nuxt', 'Tailwind', 'PostgreSQL'],
-    ownerName: 'Sophia Lee',
-    ownerImage: 'https://i.pravatar.cc/150?img=45',
-    ownerRole: 'Product Manager',
-    ownerLink: 'https://github.com/sophia',
-  },
-  {
-    image: 'https://images.unsplash.com/photo-1585079542156-2755d9c8a094?w=600&q=80',
-    name: 'AuthGuard',
-    description: 'A plug-and-play authentication library supporting OAuth 2.0, passkeys, and multi-factor authentication with zero-config setup.',
-    link: 'https://github.com',
-    tags: ['Security', 'OAuth', 'TypeScript'],
-    ownerName: 'Ethan Zhang',
-    ownerImage: 'https://i.pravatar.cc/150?img=5',
-    ownerRole: 'Security Engineer',
-    ownerLink: 'https://github.com/ethan',
-  },
-  {
-    image: 'https://images.unsplash.com/photo-1633356122544-f134324a6cee?w=600&q=80',
-    name: 'CloudDeploy',
-    description: 'CLI and dashboard for one-command deployments to major cloud providers with automatic scaling, rollback, and infrastructure monitoring.',
-    link: 'https://github.com',
-    tags: ['DevOps', 'Kubernetes', 'Go'],
-    ownerName: 'Olivia Nguyen',
-    ownerImage: 'https://i.pravatar.cc/150?img=9',
-    ownerRole: 'DevOps Engineer',
-    ownerLink: 'https://github.com/olivia',
-  },
-]
+// Featured projects state
+const projects = ref<any[]>([])
+const loadingProjects = ref(true)
+const projectsError = ref('')
+
+// Fetch projects from API
+async function fetchProjects() {
+  loadingProjects.value = true
+  projectsError.value = ''
+  try {
+    const res = await fetch('https://pitching-backend.onrender.com/projects', {
+      method: 'GET',
+      headers: { accept: 'application/json' }
+    })
+
+    if (res.ok) {
+      const data = await res.json()
+      // Transform API data to match ProjectCard props
+      projects.value = data.map((project: any) => ({
+        image: project.project_profile_image || 'https://images.unsplash.com/photo-1555066931-4365d14bab8c?w=600&q=80',
+        name: project.project_name || 'Untitled Project',
+        description: project.description || 'No description available.',
+        link: '#',
+        tags: [],
+        ownerName: project.project_leader?.full_name || 'Unknown',
+        ownerImage: project.project_leader?.profile_image || '',
+        ownerRole: 'Project Leader',
+        ownerLink: '#',
+        group: project.project_leader?.members?.length > 0 ? {
+          name: 'Team',
+          members: project.project_leader.members.map((member: any) => ({
+            name: member.name || 'Unknown',
+            image: member.image || '',
+            role: 'Member',
+            email: member.email || ''
+          }))
+        } : undefined
+      }))
+    } else {
+      projectsError.value = 'Failed to load projects'
+      console.error('Failed to fetch projects:', res.status)
+    }
+  } catch (err) {
+    projectsError.value = 'Network error loading projects'
+    console.error('Error fetching projects:', err)
+  } finally {
+    loadingProjects.value = false
+  }
+}
 
 // UI state for auth modal and auth actions
 const showLogin = ref(false)
@@ -235,13 +204,47 @@ async function handleLogin(payload: { username: string; password: string }) {
         <div class="flex-1 h-px bg-gray-200"></div>
       </div>
 
-      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
+      <!-- Loading state -->
+      <div v-if="loadingProjects" class="flex justify-center items-center py-20">
+        <div class="flex flex-col items-center gap-4">
+          <div class="w-16 h-16 border-4 border-indigo-200 border-t-indigo-600 rounded-full animate-spin"></div>
+          <p class="text-gray-600 font-medium">Loading projects...</p>
+        </div>
+      </div>
+
+      <!-- Error state -->
+      <div v-else-if="projectsError" class="flex justify-center items-center py-20">
+        <div class="bg-red-50 border border-red-200 rounded-xl p-6 max-w-md text-center">
+          <svg class="w-12 h-12 text-red-500 mx-auto mb-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+          </svg>
+          <h3 class="text-lg font-semibold text-red-800 mb-2">Failed to load projects</h3>
+          <p class="text-red-600 mb-4">{{ projectsError }}</p>
+          <button @click="fetchProjects" class="px-4 py-2 bg-red-600 hover:bg-red-700 text-white font-medium rounded-lg transition-colors">
+            Try Again
+          </button>
+        </div>
+      </div>
+
+      <!-- Projects grid -->
+      <div v-else-if="projects.length > 0" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
         <ProjectCard
           v-for="project in projects"
           :key="project.name"
           v-bind="project"
           imageHeight="h-40 md:h-44 lg:h-48"
         />
+      </div>
+
+      <!-- Empty state -->
+      <div v-else class="flex justify-center items-center py-20">
+        <div class="text-center">
+          <svg class="w-16 h-16 text-gray-400 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4"></path>
+          </svg>
+          <h3 class="text-xl font-semibold text-gray-700 mb-2">No projects yet</h3>
+          <p class="text-gray-500">Check back soon for featured projects!</p>
+        </div>
       </div>
     </main>
 
