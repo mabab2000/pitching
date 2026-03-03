@@ -276,28 +276,29 @@ async function handleLogin(payload: { username: string; password: string }) {
       <div class="max-w-6xl mx-auto px-6">
         <div class="grid grid-cols-1 md:grid-cols-3 gap-8 mb-8">
           <div>
-            <h3 class="text-white font-bold text-lg mb-4">Pitching Platform</h3>
-            <p class="text-sm text-gray-400">Showcase your innovative projects and connect with talented teams.</p>
+            <h3 class="text-white font-bold text-xl mb-4">Tech Forward Live</h3>
+            <p class="text-base text-gray-400 leading-relaxed">The flagship innovation event where founders, engineers, and product teams pitch solutions that move technology forward.</p>
           </div>
           <div>
-            <h4 class="text-white font-semibold mb-4">Quick Links</h4>
-            <ul class="space-y-2 text-sm">
-              <li><a href="/" class="hover:text-indigo-400 transition-colors">Home</a></li>
-              <li><a href="/dashboard" class="hover:text-indigo-400 transition-colors">Dashboard</a></li>
-              <li><a href="/signup" class="hover:text-indigo-400 transition-colors">Sign Up</a></li>
+            <h4 class="text-white font-semibold text-lg mb-4">Event Information</h4>
+            <ul class="space-y-2 text-base">
+              <li><span class="text-gray-400">Theme: Building impactful digital solutions</span></li>
+              <li><span class="text-gray-400">Tracks: AI, HealthTech, FinTech, GreenTech</span></li>
+              <li><span class="text-gray-400">Audience: Innovators, mentors, investors</span></li>
             </ul>
           </div>
           <div>
-            <h4 class="text-white font-semibold mb-4">Connect</h4>
-            <ul class="space-y-2 text-sm">
-              <li><a href="#" class="hover:text-indigo-400 transition-colors">GitHub</a></li>
-              <li><a href="#" class="hover:text-indigo-400 transition-colors">LinkedIn</a></li>
-              <li><a href="#" class="hover:text-indigo-400 transition-colors">Twitter</a></li>
+            <h4 class="text-white font-semibold text-lg mb-4">Contact & Support</h4>
+            <ul class="space-y-2 text-base">
+              <li><a href="mailto:info@techforwardlive.com" class="hover:text-indigo-400 transition-colors">info@techforwardlive.com</a></li>
+              <li><a href="mailto:projects@techforwardlive.com" class="hover:text-indigo-400 transition-colors">projects@techforwardlive.com</a></li>
+              <li><span class="text-gray-400">March 6, 1:30 AM - 5:30 PM</span></li>
             </ul>
           </div>
         </div>
-        <div class="pt-8 border-t border-gray-800 text-center text-sm text-gray-500">
-          &copy; 2026 Pitching Platform. All rights reserved.
+        <div class="pt-8 border-t border-gray-800 flex flex-col md:flex-row items-center justify-between gap-3 text-base text-gray-500">
+          <p>&copy; 2026 Tech Forward Live. All rights reserved.</p>
+          <p>Powered for leaders, members, and individual innovators.</p>
         </div>
       </div>
     </footer>
