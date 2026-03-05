@@ -65,7 +65,7 @@ async function fetchProjects() {
         tags: [],
         ownerName: project.project_leader?.full_name || 'Unknown',
         ownerImage: project.project_leader?.profile_image || '',
-        ownerRole: 'Project Leader',
+        ownerRole: project.project_leader?.email || 'Unknown',
         ownerLink: '#',
         group: project.project_leader?.members?.length > 0 ? {
           name: 'Team',
